@@ -195,8 +195,7 @@
             </div>
             <div class="field">
               <label for="seconds">1名処理時間（秒）</label>
-              <!-- ★ 5秒刻み -->
-              <input id="seconds" type="number" min="5" step="5" placeholder="例：30" />
+              <input id="seconds" type="number" min="1" step="1" placeholder="例：30" />
             </div>
             <div class="field">
               <label for="irregular">イレギュラー対応人数</label>
@@ -320,6 +319,7 @@
 
     // ★透明PNG用：SVG背景rect(id="bg")だけ fill="none" にする
     function makeTransparentSvg(svgText){
+      // id="bg" を持つ rect の fill を none に置換
       return svgText.replace(
         /(<rect\b[^>]*\bid="bg"[^>]*\bfill=")([^"]*)(")/,
         '$1none$3'
@@ -372,7 +372,9 @@
       if(!lastSvgText) return;
 
       try{
+        // ★透明の場合はSVGの背景を消してからPNG化する
         const srcSvg = transparent ? makeTransparentSvg(lastSvgText) : lastSvgText;
+
         const img = await svgTextToImage(srcSvg);
 
         const { vbW, vbH } = lastMeta;
@@ -382,6 +384,7 @@
 
         const ctx = canvas.getContext("2d");
 
+        // 白背景PNG：Canvasを白で塗る（背景が確実に白になる）
         if (!transparent){
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -547,16 +550,7 @@
     function calcAndRender(){
       const arrivals  = num(arrivalsInput.value);
       const minutes   = num(minutesInput.value);
-
-      // ★ 5秒刻みに丸め（入力後もズレない）
-      let seconds = num(secondsInput.value);
-      if (Number.isFinite(seconds) && seconds > 0) {
-        seconds = Math.round(seconds / 5) * 5;
-        seconds = Math.max(5, seconds);
-        const cur = Number(secondsInput.value);
-        if (!Number.isFinite(cur) || cur !== seconds) secondsInput.value = String(seconds);
-      }
-
+      const seconds   = num(secondsInput.value);
       const irregular = clampInt(num(irregularInput.value || 0), 0, 300);
 
       const ok =
